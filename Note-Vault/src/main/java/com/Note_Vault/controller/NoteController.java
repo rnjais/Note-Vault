@@ -1,5 +1,6 @@
 package com.Note_Vault.controller;
 
+import jakarta.validation.Valid;
 import com.Note_Vault.entity.Note;
 import com.Note_Vault.service.NoteService;
 import org.springframework.http.HttpStatus;
@@ -14,41 +15,38 @@ public class NoteController {
 
     private final NoteService noteService;
 
-    // Constructor injection
+    // Inject NoteService using constructor injection
     public NoteController(NoteService noteService) {
         this.noteService = noteService;
     }
 
     // Create a new note
     @PostMapping
-    public ResponseEntity<Note> createNote(@RequestBody Note note) {
+    public ResponseEntity<Note> createNote(@Valid @RequestBody Note note) {
 
-        // Save the note using the service
+        // Pass the note to the service and save it in the database
         Note savedNote = noteService.createNote(note);
 
-        // Return 201 CREATED with the saved note
+        // Return the created note with HTTP status 201 CREATED
         return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
     }
 
     // Get all notes
     @GetMapping
     public List<Note> getAllNotes() {
+
+        // Fetch all notes from the database through the service
         return noteService.getAllNotes();
     }
 
-    // Get a single note by ID
+    // Get a single note by its ID
     @GetMapping("/{id}")
-    public ResponseEntity<Note> getNotebyId(@PathVariable Long id) {
+    public ResponseEntity<Note> getNoteById(@PathVariable Long id) {
 
-        // Find note by ID
+        // Find the note by ID; throws exception if the note does not exist
         Note note = noteService.getNoteById(id);
 
-        // If note doesn't exist, return 404 NOT FOUND
-        if (note == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // If note exists, return 200 OK with the note
+        // Return the note with HTTP status 200 OK
         return ResponseEntity.ok(note);
     }
 
@@ -56,33 +54,23 @@ public class NoteController {
     @PutMapping("/{id}")
     public ResponseEntity<Note> updateNote(
             @PathVariable Long id,
-            @RequestBody Note note) {
+            @Valid @RequestBody Note note) {
 
-        // Update the note
+        // Find the existing note and update its details
         Note updatedNote = noteService.updateNote(id, note);
 
-        // If note doesn't exist, return 404 NOT FOUND
-        if (updatedNote == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // If update is successful, return 200 OK
+        // Return the updated note with HTTP status 200 OK
         return ResponseEntity.ok(updatedNote);
     }
 
-    // Delete a note by ID
+    // Delete a note by its ID
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteNoteById(@PathVariable Long id) {
 
-        // Try to delete the note
-        boolean deleted = noteService.deleteNoteById(id);
+        // Delete the note; throws exception if the note does not exist
+        noteService.deleteNoteById(id);
 
-        // If note doesn't exist, return 404 NOT FOUND
-        if (!deleted) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // If deletion is successful, return 200 OK
+        // Return a success message with HTTP status 200 OK
         return ResponseEntity.ok("Note deleted successfully");
     }
 }

@@ -1,6 +1,6 @@
 package com.Note_Vault.service;
-
 import com.Note_Vault.entity.Note;
+import com.Note_Vault.exception.NoteNotFoundException;
 import com.Note_Vault.repository.NoteRepository;
 import org.springframework.stereotype.Service;
 
@@ -34,27 +34,22 @@ public class NoteService {
 
     // Get a single note by its ID
     public Note getNoteById(Long id) {
-
-        // Find the note using its ID
-        // Return null if the note does not exist
-        return noteRepository.findById(id).orElse(null);
+        return noteRepository.findById(id).orElseThrow(() ->
+                                            new NoteNotFoundException("Note with id " +id+ " not found"));
     }
 
-    // Update an existing note
     public Note updateNote(Long id, Note note) {
 
-        // Find the existing note in the database
-        Note existingNote = noteRepository.findById(id).orElse(null);
+        // If note exists, store it in existingNote.
+        // Otherwise, throw NoteNotFoundException.
+        Note existingNote = noteRepository.findById(id)
+                .orElseThrow(() ->
+                        new NoteNotFoundException("Note with id " + id + " not found"));
 
-        // If the note doesn't exist, return null
-        if (existingNote == null) {
-            return null;
-        }
-
-        // Update the title with the new title
+        // Update the title
         existingNote.setTitle(note.getTitle());
 
-        // Update the content with the new content
+        // Update the content
         existingNote.setContent(note.getContent());
 
         // Save the updated note to the database
@@ -62,17 +57,16 @@ public class NoteService {
     }
 
     // Delete a note by its ID
-    public boolean deleteNoteById(Long id) {
+    public void deleteNoteById(Long id) {
 
         // Check whether the note exists
         if (!noteRepository.existsById(id)) {
-            return false;
+            throw new NoteNotFoundException(
+                    "Note with id " + id + " not found"
+            );
         }
 
-        // Delete the note from the database
+        // Delete the note
         noteRepository.deleteById(id);
-
-        // Return true when deletion is successful
-        return true;
     }
 }

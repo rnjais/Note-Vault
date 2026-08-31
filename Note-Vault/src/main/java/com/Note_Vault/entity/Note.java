@@ -1,6 +1,6 @@
 package com.Note_Vault.entity;
 
-
+import jakarta.validation.constraints.NotBlank;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -11,9 +11,12 @@ public class Note {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "Title cannot be empty")
     private String title;
 
     @Column(columnDefinition = "TEXT")
+    @NotBlank(message = "Content cannot be empty")
     private String content;
     private LocalDateTime createdAt;
 
