@@ -3,6 +3,7 @@ package com.Note_Vault.controller;
 import jakarta.validation.Valid;
 import com.Note_Vault.entity.Note;
 import com.Note_Vault.service.NoteService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,10 +34,15 @@ public class NoteController {
 
     // Get all notes
     @GetMapping
-    public List<Note> getAllNotes() {
+    public ResponseEntity<Page<Note>> getAllNotes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
 
-        // Fetch all notes from the database through the service
-        return noteService.getAllNotes();
+        Page<Note> notes = noteService.getAllNotes(page, size, sortBy, direction);
+
+        return new ResponseEntity<>(notes, HttpStatus.OK);
     }
 
     // Get a single note by its ID
@@ -72,5 +78,17 @@ public class NoteController {
 
         // Return a success message with HTTP status 200 OK
         return ResponseEntity.ok("Note deleted successfully");
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Note>> searchNotesByTitle(@RequestParam String keyword) {
+        List<Note> notes = noteService.searchNotesByTitle(keyword);
+        return new ResponseEntity<>(notes, HttpStatus.OK);
+    }
+
+    @GetMapping("/category")
+    public ResponseEntity<List<Note>> searchNotesByCategory(@RequestParam String category) {
+        List<Note> notes = noteService.searchNotesByCategory(category);
+        return new ResponseEntity<>(notes, HttpStatus.OK);
     }
 }

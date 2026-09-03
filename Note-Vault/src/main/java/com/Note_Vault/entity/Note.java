@@ -19,17 +19,25 @@ public class Note {
     @NotBlank(message = "Content cannot be empty")
     private String content;
     private LocalDateTime createdAt;
+    private String category;
 
-    public Note(Long id, String title, String content, LocalDateTime createdAt) {
+    public Note(Long id, String title, String content, LocalDateTime createdAt,String category) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;
+        this.category = category;
     }
     public Note(){
 
     }
+    public String getCategory() {
+        return category;
+    }
 
+    public void setCategory(String category) {
+        this.category = category;
+    }
     public Long getId() {
         return id;
     }
