@@ -1,15 +1,19 @@
 package com.Note_Vault.service;
+
 import com.Note_Vault.entity.Note;
 import com.Note_Vault.exception.NoteNotFoundException;
+import com.Note_Vault.mapper.NoteMapper;
 import com.Note_Vault.repository.NoteRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.Note_Vault.dto.NoteDTO;
 
 @Service
 public class NoteService {
@@ -22,17 +26,16 @@ public class NoteService {
     }
 
     // Create a new note
-    public Note createNote(Note note) {
+    public Note createNote(NoteDTO noteDTO) {
 
-        // Set the current date and time when the note is created
+        Note note = NoteMapper.toEntity(noteDTO);
         note.setCreatedAt(LocalDateTime.now());
 
-        // Save the note to the database
         return noteRepository.save(note);
     }
 
     // Get all notes from the database
-    public Page<Note> getAllNotes(int page, int size, String sortBy, String direction) {
+    public Page<NoteDTO> getAllNotes(int page, int size, String sortBy, String direction) {
 
         Sort sort = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
@@ -40,16 +43,33 @@ public class NoteService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        return noteRepository.findAll(pageable);
+        Page<Note> notes = noteRepository.findAll(pageable);
+
+//        Think like:-
+//        List<Note>
+//    ↓
+//        Only notes
+//
+//        Page<Note>
+//    ↓
+//        Notes + pagination information
+
+        return notes.map(note -> {
+            NoteDTO noteDTO = NoteMapper.toDTO(note);
+            return noteDTO;
+        });
+
     }
 
     // Get a single note by its ID
-    public Note getNoteById(Long id) {
-        return noteRepository.findById(id).orElseThrow(() ->
-                                            new NoteNotFoundException("Note with id " +id+ " not found"));
+    public NoteDTO getNoteById(Long id) {
+        Note note = noteRepository.findById(id).orElseThrow(() ->
+                new NoteNotFoundException("Note with id " + id + " not found"));
+         NoteDTO noteDTO = NoteMapper.toDTO(note);
+        return noteDTO;
     }
 
-    public Note updateNote(Long id, Note note) {
+    public Note updateNote(Long id, NoteDTO noteDTO) {
 
         // If note exists, store it in existingNote.
         // Otherwise, throw NoteNotFoundException.
@@ -58,11 +78,13 @@ public class NoteService {
                         new NoteNotFoundException("Note with id " + id + " not found"));
 
         // Update the title
-        existingNote.setTitle(note.getTitle());
+        existingNote.setTitle(noteDTO.getTitle());
 
         // Update the content
-        existingNote.setContent(note.getContent());
+        existingNote.setContent(noteDTO.getContent());
 
+        //Update Category
+        existingNote.setCategory(noteDTO.getCategory());
         // Save the updated note to the database
         return noteRepository.save(existingNote);
     }
@@ -80,13 +102,30 @@ public class NoteService {
         // Delete the note
         noteRepository.deleteById(id);
     }
+
     //Search By Keyword (title/content)
-    public List<Note> searchNotesByTitle(String keyword){
-        return noteRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(keyword,keyword);
+    public List<NoteDTO> searchNotesByTitle(String keyword) {
+        List<Note> notes = noteRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(keyword, keyword);
+        return notes.stream()
+                .map(note -> {
+                    NoteDTO noteDTO = NoteMapper.toDTO(note);
+
+                    return noteDTO;
+                })
+                .toList();
+
     }
+
     //Search By Category
-    public List<Note> searchNotesByCategory(String category){
-        return noteRepository.findByCategoryContainingIgnoreCase(category);
+    public List<NoteDTO> searchNotesByCategory(String category) {
+        List<Note> notes = noteRepository.findByCategoryContainingIgnoreCase(category);
+        return notes.stream()
+                .map(note -> {
+                    NoteDTO noteDTO = NoteMapper.toDTO(note);
+
+                    return noteDTO;
+                })
+                .toList();
     }
 
 }
