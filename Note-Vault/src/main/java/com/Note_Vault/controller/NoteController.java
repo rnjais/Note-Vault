@@ -10,11 +10,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/notes")
+@Tag(
+        name = "Notes",
+        description = "APIs for managing notes"
+)
 public class NoteController {
 
     private final NoteService noteService;
@@ -29,6 +34,10 @@ public class NoteController {
     // CREATE NOTE
     // =========================
     @PostMapping
+    @Operation(
+            summary = "Create a new note",
+            description = "Creates and saves a new note"
+    )
     public ResponseEntity<ApiResponse<NoteDTO>> createNote(
             @Valid @RequestBody NoteDTO noteDTO) {
 
@@ -50,6 +59,10 @@ public class NoteController {
     // GET ALL NOTES
     // =========================
     @GetMapping
+    @Operation(
+            summary = "Get all notes",
+            description = "Retrieves all notes with pagination and sorting"
+    )
     public ResponseEntity<ApiResponse<Page<NoteDTO>>> getAllNotes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
@@ -73,6 +86,10 @@ public class NoteController {
     // GET NOTE BY ID
     // =========================
     @GetMapping("/{id}")
+    @Operation(
+            summary = "Get note by ID",
+            description = "Retrieves a single note using its ID"
+    )
     public ResponseEntity<ApiResponse<NoteDTO>> getNoteById(
             @PathVariable Long id) {
 
@@ -92,6 +109,10 @@ public class NoteController {
     // UPDATE NOTE
     // =========================
     @PutMapping("/{id}")
+    @Operation(
+            summary = "Update a note",
+            description = "Updates an existing note using its ID"
+    )
     public ResponseEntity<ApiResponse<NoteDTO>> updateNote(
             @PathVariable Long id,
             @Valid @RequestBody NoteDTO noteDTO) {
@@ -113,6 +134,10 @@ public class NoteController {
     // DELETE NOTE
     // =========================
     @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Delete a note",
+            description = "Deletes an existing note using its ID"
+    )
     public ResponseEntity<ApiResponse<String>> deleteNoteById(
             @PathVariable Long id) {
 
@@ -132,6 +157,10 @@ public class NoteController {
     // SEARCH NOTES
     // =========================
     @GetMapping("/search")
+    @Operation(
+            summary = "Search notes",
+            description = "Searches notes by title or content"
+    )
     public ResponseEntity<ApiResponse<List<NoteDTO>>> searchNotesByTitle(
             @RequestParam String keyword) {
 
@@ -152,6 +181,10 @@ public class NoteController {
     // SEARCH BY CATEGORY
     // =========================
     @GetMapping("/category")
+    @Operation(
+            summary = "Search notes by category",
+            description = "Retrieves notes matching the specified category"
+    )
     public ResponseEntity<ApiResponse<List<NoteDTO>>> searchNotesByCategory(
             @RequestParam String category) {
 
