@@ -19,19 +19,23 @@ import com.Note_Vault.dto.NoteDTO;
 public class NoteService {
 
     private final NoteRepository noteRepository;
-
+    private final NoteMapper noteMapper;
     // Constructor injection for NoteRepository
-    public NoteService(NoteRepository noteRepository) {
+    public NoteService(NoteRepository noteRepository, NoteMapper noteMapper) {
         this.noteRepository = noteRepository;
+        this.noteMapper = noteMapper;
     }
 
     // Create a new note
-    public Note createNote(NoteDTO noteDTO) {
+    public NoteDTO createNote(NoteDTO noteDTO) {
 
-        Note note = NoteMapper.toEntity(noteDTO);
+        Note note = noteMapper.toEntity(noteDTO);
+
         note.setCreatedAt(LocalDateTime.now());
 
-        return noteRepository.save(note);
+        Note savedNote = noteRepository.save(note);
+
+        return noteMapper.toDTO(savedNote);
     }
 
     // Get all notes from the database
@@ -55,7 +59,7 @@ public class NoteService {
 //        Notes + pagination information
 
         return notes.map(note -> {
-            NoteDTO noteDTO = NoteMapper.toDTO(note);
+            NoteDTO noteDTO = noteMapper.toDTO(note);
             return noteDTO;
         });
 
@@ -65,11 +69,11 @@ public class NoteService {
     public NoteDTO getNoteById(Long id) {
         Note note = noteRepository.findById(id).orElseThrow(() ->
                 new NoteNotFoundException("Note with id " + id + " not found"));
-         NoteDTO noteDTO = NoteMapper.toDTO(note);
+         NoteDTO noteDTO = noteMapper.toDTO(note);
         return noteDTO;
     }
 
-    public Note updateNote(Long id, NoteDTO noteDTO) {
+    public NoteDTO updateNote(Long id, NoteDTO noteDTO) {
 
         // If note exists, store it in existingNote.
         // Otherwise, throw NoteNotFoundException.
@@ -86,7 +90,9 @@ public class NoteService {
         //Update Category
         existingNote.setCategory(noteDTO.getCategory());
         // Save the updated note to the database
-        return noteRepository.save(existingNote);
+        Note updatedNote = noteRepository.save(existingNote);
+
+        return noteMapper.toDTO(updatedNote);
     }
 
     // Delete a note by its ID
@@ -108,7 +114,7 @@ public class NoteService {
         List<Note> notes = noteRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(keyword, keyword);
         return notes.stream()
                 .map(note -> {
-                    NoteDTO noteDTO = NoteMapper.toDTO(note);
+                    NoteDTO noteDTO = noteMapper.toDTO(note);
 
                     return noteDTO;
                 })
@@ -121,7 +127,7 @@ public class NoteService {
         List<Note> notes = noteRepository.findByCategoryContainingIgnoreCase(category);
         return notes.stream()
                 .map(note -> {
-                    NoteDTO noteDTO = NoteMapper.toDTO(note);
+                    NoteDTO noteDTO = noteMapper.toDTO(note);
 
                     return noteDTO;
                 })

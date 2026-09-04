@@ -1,8 +1,11 @@
 package com.Note_Vault.controller;
 
-import jakarta.validation.Valid;
-import com.Note_Vault.entity.Note;
+import com.Note_Vault.dto.NoteDTO;
+import com.Note_Vault.response.ApiResponse;
 import com.Note_Vault.service.NoteService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,74 +24,146 @@ public class NoteController {
         this.noteService = noteService;
     }
 
-    // Create a new note
+
+    // =========================
+    // CREATE NOTE
+    // =========================
     @PostMapping
-    public ResponseEntity<Note> createNote(@Valid @RequestBody Note note) {
+    public ResponseEntity<ApiResponse<NoteDTO>> createNote(
+            @Valid @RequestBody NoteDTO noteDTO) {
 
-        // Pass the note to the service and save it in the database
-        Note savedNote = noteService.createNote(note);
+        NoteDTO savedNote = noteService.createNote(noteDTO);
 
-        // Return the created note with HTTP status 201 CREATED
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
+        ApiResponse<NoteDTO> response = new ApiResponse<>(
+                true,
+                "Note created successfully",
+                savedNote
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    // Get all notes
+
+    // =========================
+    // GET ALL NOTES
+    // =========================
     @GetMapping
-    public ResponseEntity<Page<Note>> getAllNotes(
+    public ResponseEntity<ApiResponse<Page<NoteDTO>>> getAllNotes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String direction) {
 
-        Page<Note> notes = noteService.getAllNotes(page, size, sortBy, direction);
+        Page<NoteDTO> notesDTO =
+                noteService.getAllNotes(page, size, sortBy, direction);
 
-        return new ResponseEntity<>(notes, HttpStatus.OK);
+        ApiResponse<Page<NoteDTO>> response = new ApiResponse<>(
+                true,
+                "Notes retrieved successfully",
+                notesDTO
+        );
+
+        return ResponseEntity.ok(response);
     }
 
-    // Get a single note by its ID
+
+    // =========================
+    // GET NOTE BY ID
+    // =========================
     @GetMapping("/{id}")
-    public ResponseEntity<Note> getNoteById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<NoteDTO>> getNoteById(
+            @PathVariable Long id) {
 
-        // Find the note by ID; throws exception if the note does not exist
-        Note note = noteService.getNoteById(id);
+        NoteDTO noteDTO = noteService.getNoteById(id);
 
-        // Return the note with HTTP status 200 OK
-        return ResponseEntity.ok(note);
+        ApiResponse<NoteDTO> response = new ApiResponse<>(
+                true,
+                "Note retrieved successfully",
+                noteDTO
+        );
+
+        return ResponseEntity.ok(response);
     }
 
-    // Update an existing note
+
+    // =========================
+    // UPDATE NOTE
+    // =========================
     @PutMapping("/{id}")
-    public ResponseEntity<Note> updateNote(
+    public ResponseEntity<ApiResponse<NoteDTO>> updateNote(
             @PathVariable Long id,
-            @Valid @RequestBody Note note) {
+            @Valid @RequestBody NoteDTO noteDTO) {
 
-        // Find the existing note and update its details
-        Note updatedNote = noteService.updateNote(id, note);
+        NoteDTO updatedNote =
+                noteService.updateNote(id, noteDTO);
 
-        // Return the updated note with HTTP status 200 OK
-        return ResponseEntity.ok(updatedNote);
+        ApiResponse<NoteDTO> response = new ApiResponse<>(
+                true,
+                "Note updated successfully",
+                updatedNote
+        );
+
+        return ResponseEntity.ok(response);
     }
 
-    // Delete a note by its ID
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteNoteById(@PathVariable Long id) {
 
-        // Delete the note; throws exception if the note does not exist
+    // =========================
+    // DELETE NOTE
+    // =========================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteNoteById(
+            @PathVariable Long id) {
+
         noteService.deleteNoteById(id);
 
-        // Return a success message with HTTP status 200 OK
-        return ResponseEntity.ok("Note deleted successfully");
+        ApiResponse<String> response = new ApiResponse<>(
+                true,
+                "Note deleted successfully",
+                null
+        );
+
+        return ResponseEntity.ok(response);
     }
 
+
+    // =========================
+    // SEARCH NOTES
+    // =========================
     @GetMapping("/search")
-    public ResponseEntity<List<Note>> searchNotesByTitle(@RequestParam String keyword) {
-        List<Note> notes = noteService.searchNotesByTitle(keyword);
-        return new ResponseEntity<>(notes, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<List<NoteDTO>>> searchNotesByTitle(
+            @RequestParam String keyword) {
+
+        List<NoteDTO> notesDTO =
+                noteService.searchNotesByTitle(keyword);
+
+        ApiResponse<List<NoteDTO>> response = new ApiResponse<>(
+                true,
+                "Search completed successfully",
+                notesDTO
+        );
+
+        return ResponseEntity.ok(response);
     }
 
+
+    // =========================
+    // SEARCH BY CATEGORY
+    // =========================
     @GetMapping("/category")
-    public ResponseEntity<List<Note>> searchNotesByCategory(@RequestParam String category) {
-        List<Note> notes = noteService.searchNotesByCategory(category);
-        return new ResponseEntity<>(notes, HttpStatus.OK);
+    public ResponseEntity<ApiResponse<List<NoteDTO>>> searchNotesByCategory(
+            @RequestParam String category) {
+
+        List<NoteDTO> notesDTO =
+                noteService.searchNotesByCategory(category);
+
+        ApiResponse<List<NoteDTO>> response = new ApiResponse<>(
+                true,
+                "Category search completed successfully",
+                notesDTO
+        );
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,5 +1,6 @@
 package com.Note_Vault.exception;
 
+import com.Note_Vault.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,9 +12,10 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     // Handles validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationException(
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(
             MethodArgumentNotValidException ex) {
 
         Map<String, String> errors = new HashMap<>();
@@ -24,17 +26,30 @@ public class GlobalExceptionHandler {
                         errors.put(error.getField(), error.getDefaultMessage())
                 );
 
-        return errors;
-    }   // Handles note not found errors
-    @ExceptionHandler(NoteNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNoteNotFound(
-            NoteNotFoundException ex) {
+        ApiResponse<Map<String, String>> response = new ApiResponse<>(
+                false,
+                "Validation failed",
+                errors
+        );
 
-        Map<String, String> error = new HashMap<>();
-
-        error.put("message", ex.getMessage());
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
+    // Handles note not found errors
+    @ExceptionHandler(NoteNotFoundException.class)
+    public ResponseEntity<ApiResponse<String>> handleNoteNotFound(
+            NoteNotFoundException ex) {
+
+        ApiResponse<String> response = new ApiResponse<>(
+                false,
+                ex.getMessage(),
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
 }

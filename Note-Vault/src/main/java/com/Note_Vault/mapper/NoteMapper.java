@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class NoteMapper {
 
     // Entity → DTO
-    public static NoteDTO toDTO(Note note) {
+    public NoteDTO toDTO(Note note) {
 
         NoteDTO dto = new NoteDTO();
 
@@ -21,7 +21,7 @@ public class NoteMapper {
     }
 
     // DTO → Entity
-    public static Note toEntity(NoteDTO dto) {
+    public Note toEntity(NoteDTO dto) {
 
         Note note = new Note();
 
