@@ -2,7 +2,11 @@ package com.Note_Vault.controller;
 
 import com.Note_Vault.dto.NoteDTO;
 import com.Note_Vault.response.ApiResponse;
+
+
+
 import com.Note_Vault.service.NoteService;
+
 
 import jakarta.validation.Valid;
 
@@ -12,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.util.List;
 
 @RestController
@@ -38,6 +43,8 @@ public class NoteController {
             summary = "Create a new note",
             description = "Creates and saves a new note"
     )
+
+
     public ResponseEntity<ApiResponse<NoteDTO>> createNote(
             @Valid @RequestBody NoteDTO noteDTO) {
 
@@ -90,6 +97,7 @@ public class NoteController {
             summary = "Get note by ID",
             description = "Retrieves a single note using its ID"
     )
+
     public ResponseEntity<ApiResponse<NoteDTO>> getNoteById(
             @PathVariable Long id) {
 
