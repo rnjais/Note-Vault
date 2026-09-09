@@ -10,40 +10,58 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-    private final String secretKey = "NoteVaultSecretKeyForJwtAuthentication2026VerySecure";
 
-    private final long expirationTime = 1000*60*60;
+    private final String secretKey =
+            "NoteVaultSecretKeyForJwtAuthentication2026VerySecure";
 
-    private SecretKey  getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    private final long expirationTime = 1000 * 60 * 60;
 
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(
+                secretKey.getBytes(StandardCharsets.UTF_8)
+        );
     }
-    public String generateToken(String username){
+
+    public String generateToken(String username) {
+
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationTime))
+                .expiration(
+                        new Date(System.currentTimeMillis() + expirationTime)
+                )
                 .signWith(getSigningKey())
                 .compact();
-//        Postman
-//            │
-//            │ username + password
-//           ↓
-//        AuthController
-//           ↓
-//        AuthService
-//            ↓
-//        Check BCrypt password
-//            ↓
-//        Correct ✅
-//             ↓
-//        JwtService
-//              ↓
-//        generateToken("aryan1")
-//              ↓
-//        JWT Token
-//              ↓
-//        Postman
+    }
+
+    public String extractUsername(String token) {
+
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+    }
+
+    public boolean isTokenValid(String token, String username) {
+
+        String tokenUsername = extractUsername(token);
+
+        return tokenUsername.equals(username)
+                && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
+
+        Date expiration = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration();
+
+        return expiration.before(new Date());
     }
 }
 //                            NoteVault
