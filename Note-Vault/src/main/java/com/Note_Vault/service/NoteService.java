@@ -1,5 +1,8 @@
 package com.Note_Vault.service;
 
+import com.Note_Vault.entity.User;
+import com.Note_Vault.repository.UserRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.Note_Vault.entity.Note;
 import com.Note_Vault.exception.NoteNotFoundException;
 import com.Note_Vault.mapper.NoteMapper;
@@ -20,18 +23,29 @@ public class NoteService {
 
     private final NoteRepository noteRepository;
     private final NoteMapper noteMapper;
+    private final UserRepository userRepository;
+
     // Constructor injection for NoteRepository
-    public NoteService(NoteRepository noteRepository, NoteMapper noteMapper) {
+    public NoteService(NoteRepository noteRepository, NoteMapper noteMapper, UserRepository userRepository) {
         this.noteRepository = noteRepository;
         this.noteMapper = noteMapper;
+        this.userRepository = userRepository;
     }
 
     // Create a new note
     public NoteDTO createNote(NoteDTO noteDTO) {
+        //Get the username of the currently logged-in user from Spring Security
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Find the User object from the database using the username
+        // If the user does not exist, throw an exception
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
 
         Note note = noteMapper.toEntity(noteDTO);
 
         note.setCreatedAt(LocalDateTime.now());
+
+        note.setUser(user);
 
         Note savedNote = noteRepository.save(note);
 
@@ -40,6 +54,9 @@ public class NoteService {
 
     // Get all notes from the database
     public Page<NoteDTO> getAllNotes(int page, int size, String sortBy, String direction) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("user not found"));
 
         Sort sort = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
@@ -47,7 +64,7 @@ public class NoteService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Note> notes = noteRepository.findAll(pageable);
+        Page<Note> notes = noteRepository.findByUser(user, pageable);
 
 //        Think like:-
 //        List<Note>
@@ -67,9 +84,32 @@ public class NoteService {
 
     // Get a single note by its ID
     public NoteDTO getNoteById(Long id) {
-        Note note = noteRepository.findById(id).orElseThrow(() ->
-                new NoteNotFoundException("Note with id " + id + " not found"));
-         NoteDTO noteDTO = noteMapper.toDTO(note);
+
+        // Get the username of the currently logged-in user
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        // Find the User object from the database using the username
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+
+        // Find the note using its ID
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() ->
+                        new NoteNotFoundException("Note with id " + id + " not found"));
+
+        // Check whether this note belongs to the logged-in user
+        if (!note.getUser().getId().equals(user.getId())) {
+            throw new NoteNotFoundException(
+                    "Note with id " + id + " not found"
+            );
+        }
+
+        // Convert the Note entity into NoteDTO
+        NoteDTO noteDTO = noteMapper.toDTO(note);
+
+        // Return the note
         return noteDTO;
     }
 

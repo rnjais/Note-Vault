@@ -20,6 +20,9 @@ public class Note {
     private String content;
     private LocalDateTime createdAt;
     private String category;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public Note(Long id, String title, String content, LocalDateTime createdAt,String category) {
         this.id = id;
@@ -68,5 +71,12 @@ public class Note {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
