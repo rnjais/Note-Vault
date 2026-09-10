@@ -12,12 +12,15 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     Page<Note> findByUser(User user, Pageable pageable);
 
-    List<Note> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+    List<Note> findByUserAndTitleContainingIgnoreCaseOrUserAndContentContainingIgnoreCase(
+            User user,
             String title,
+            User user2,
             String content
     );
 
-    List<Note> findByCategoryContainingIgnoreCase(
+    List<Note> findByUserAndCategoryContainingIgnoreCase(
+            User user,
             String category
     );
 }

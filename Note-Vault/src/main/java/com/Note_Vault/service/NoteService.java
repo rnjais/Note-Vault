@@ -58,9 +58,7 @@ public class NoteService {
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("user not found"));
 
-        Sort sort = direction.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
+        Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -117,10 +115,20 @@ public class NoteService {
 
         // If note exists, store it in existingNote.
         // Otherwise, throw NoteNotFoundException.
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("user not found"));
+
         Note existingNote = noteRepository.findById(id)
                 .orElseThrow(() ->
                         new NoteNotFoundException("Note with id " + id + " not found"));
 
+        if (!existingNote.getUser().getId().equals(user.getId())) {
+            throw new NoteNotFoundException(
+                    "Note with id " + id + " not found"
+            );
+        }
         // Update the title
         existingNote.setTitle(noteDTO.getTitle());
 
@@ -138,8 +146,18 @@ public class NoteService {
     // Delete a note by its ID
     public void deleteNoteById(Long id) {
 
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+         new NoteNotFoundException("user not found"));
+
+        Note note = noteRepository.findById(id).orElseThrow(
+                () -> new NoteNotFoundException("Note with id " + id + " not found")
+        );
+
         // Check whether the note exists
-        if (!noteRepository.existsById(id)) {
+        if (!note.getUser().getId().equals(user.getId())) {
             throw new NoteNotFoundException(
                     "Note with id " + id + " not found"
             );
@@ -151,7 +169,20 @@ public class NoteService {
 
     //Search By Keyword (title/content)
     public List<NoteDTO> searchNotesByTitle(String keyword) {
-        List<Note> notes = noteRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(keyword, keyword);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username).orElseThrow(() ->
+                new RuntimeException("user not found"));
+
+        List<Note> notes =
+                noteRepository.findByUserAndTitleContainingIgnoreCaseOrUserAndContentContainingIgnoreCase(
+                        user,
+                        keyword,
+                        user,
+                        keyword
+                );
+
+
         return notes.stream()
                 .map(note -> {
                     NoteDTO noteDTO = noteMapper.toDTO(note);
@@ -164,7 +195,12 @@ public class NoteService {
 
     //Search By Category
     public List<NoteDTO> searchNotesByCategory(String category) {
-        List<Note> notes = noteRepository.findByCategoryContainingIgnoreCase(category);
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(()->
+                new RuntimeException("User not found"));
+
+        List<Note> notes = noteRepository.findByUserAndCategoryContainingIgnoreCase(user,category);
+
         return notes.stream()
                 .map(note -> {
                     NoteDTO noteDTO = noteMapper.toDTO(note);
