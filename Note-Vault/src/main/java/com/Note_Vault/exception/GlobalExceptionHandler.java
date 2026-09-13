@@ -99,4 +99,19 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(response);
     }
+    //User Not Found
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<String>> handleUserNotFound(
+            UserNotFoundException ex) {
+
+        ApiResponse<String> response = new ApiResponse<>(
+                false,
+                ex.getMessage(),
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
 }
