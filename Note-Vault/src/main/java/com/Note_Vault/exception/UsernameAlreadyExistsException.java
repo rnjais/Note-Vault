@@ -1,0 +1,7 @@
+package com.Note_Vault.exception;
+
+public class UsernameAlreadyExistsException extends  RuntimeException{
+    public UsernameAlreadyExistsException(String message){
+        super(message);
+    }
+}
